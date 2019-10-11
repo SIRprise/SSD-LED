@@ -22,6 +22,8 @@ namespace SSD_LED
         PerformanceCounter hddIdleCnt = new PerformanceCounter("PhysicalDisk", "% Idle Time", "_Total");
         PerformanceCounter hddReadCnt = new PerformanceCounter("PhysicalDisk", "Disk Read Bytes/sec", "_Total");
         PerformanceCounter hddWriteCnt = new PerformanceCounter("PhysicalDisk", "Disk Write Bytes/sec", "_Total");
+        private PerformanceCounter _diskReadCounter = new PerformanceCounter();
+        private PerformanceCounter _diskWriteCounter = new PerformanceCounter();
 
 
         public SSDLED()
@@ -109,11 +111,30 @@ namespace SSD_LED
 
         public void SSDActivityPerfCount()
         {
-            float bytesPS = hddReadCnt.NextValue();
-            notifyIcon.Text = Math.Round(bytesPS / 1024, 2).ToString() + " KB/s";
-            bytesPS /= 1024;
+            float bytesPSRead = GetCounterValue(_diskReadCounter, "PhysicalDisk", "Disk Read Bytes/sec", "_Total");
+            float bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", "_Total");
+            float bytesPS = bytesPSRead + bytesPSWrite;
+            //Debug.WriteLine(bytesPS);
+            //float bytesPS = hddReadCnt.NextValue();
+            /*
+            bytesPS /= (1024*10);
             bytesPS = bytesPS > 255 ? 255 : bytesPS;
-            notifyIcon.Icon = CreateIcon(Color.FromArgb(0, (int)bytesPS / 1024, 0));
+            notifyIcon.Icon = CreateIcon(Color.FromArgb(0, (int)bytesPS, 0));
+             */
+            notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
+            bytesPSRead /= (1024*10);
+            bytesPSRead = bytesPSRead > 255 ? 255 : bytesPSRead;
+            bytesPSWrite /= (1024 * 10);
+            bytesPSWrite = bytesPSWrite > 255 ? 255 : bytesPSWrite;
+            notifyIcon.Icon = CreateIcon(Color.FromArgb((int)bytesPSWrite, (int)bytesPSRead, 0));
+        }
+
+        float GetCounterValue(PerformanceCounter pc, string categoryName, string counterName, string instanceName)
+        {
+            pc.CategoryName = categoryName;
+            pc.CounterName = counterName;
+            pc.InstanceName = instanceName;
+            return pc.NextValue();
         }
 
         public void SSDActivityWMI()
@@ -142,8 +163,8 @@ namespace SSD_LED
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            SSDActivityWMI();
-            //SSDActivityPerfCount();
+            //SSDActivityWMI();
+            SSDActivityPerfCount();
         }
     }
 }
