@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -62,8 +63,7 @@ namespace SSD_LED
             quit.Click += exit_Click;
             info.Click += info_Click;
             notifyIcon.Click += info_Click;
-
-            timer1.Enabled = true;
+            
             RefreshDriveList();
 
             label1.Text = NameAndVersion() + "  by SIRprise";
@@ -77,6 +77,18 @@ namespace SSD_LED
             readTimer = new System.Timers.Timer();
             readTimer.Elapsed += new ElapsedEventHandler(OnReadTimeOut);
             readTimer.Interval = 20000;
+            readTimer.Enabled = false;
+
+            try
+            {
+                SSDActivityPerfCount();
+            }
+            catch
+            {
+                MessageBox.Show("Error during initialization");
+                Application.Exit();
+            }
+            timer1.Enabled = true;
         }
 
         private string NameAndVersion()
@@ -110,7 +122,8 @@ namespace SSD_LED
                 Bitmap bitMapImage = new Bitmap(50, 50);
                 Graphics graphicImage = Graphics.FromImage(bitMapImage);
 
-                graphicImage.FillEllipse(new SolidBrush(color), new Rectangle(0, 0, 50, 50));
+                LinearGradientBrush lgb = new LinearGradientBrush(new Rectangle(0, 0, 50, 50), color, Color.FromArgb(color.A,(int)color.R/5,(int)color.G/5,(int)color.B/5), 0f, true);
+                graphicImage.FillEllipse(lgb, new Rectangle(0, 0, 50, 50));
 
 
                 icon = System.Drawing.Icon.FromHandle(bitMapImage.GetHicon());
