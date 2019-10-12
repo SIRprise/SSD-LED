@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Title title3 = new System.Windows.Forms.DataVisualization.Charting.Title();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series9 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series10 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Title title5 = new System.Windows.Forms.DataVisualization.Charting.Title();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
@@ -99,45 +99,45 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chart1.BackColor = System.Drawing.Color.LightGray;
-            chartArea3.Area3DStyle.PointDepth = 0;
-            chartArea3.Area3DStyle.PointGapDepth = 0;
-            chartArea3.Area3DStyle.Rotation = -45;
-            chartArea3.AxisX.LabelStyle.Enabled = false;
-            chartArea3.AxisY.IsLogarithmic = true;
-            chartArea3.AxisY.Maximum = 5000D;
-            chartArea3.AxisY.Minimum = 1D;
-            chartArea3.AxisY2.IsLogarithmic = true;
-            chartArea3.AxisY2.Maximum = 5000D;
-            chartArea3.AxisY2.Minimum = 1D;
-            chartArea3.IsSameFontSizeForAllAxes = true;
-            chartArea3.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea3);
-            legend3.DockedToChartArea = "ChartArea1";
-            legend3.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
-            legend3.Name = "Legend1";
-            this.chart1.Legends.Add(legend3);
+            chartArea5.Area3DStyle.PointDepth = 0;
+            chartArea5.Area3DStyle.PointGapDepth = 0;
+            chartArea5.Area3DStyle.Rotation = -45;
+            chartArea5.AxisX.LabelStyle.Enabled = false;
+            chartArea5.AxisY.IsLogarithmic = true;
+            chartArea5.AxisY.Maximum = 5000D;
+            chartArea5.AxisY.Minimum = 1D;
+            chartArea5.AxisY2.IsLogarithmic = true;
+            chartArea5.AxisY2.Maximum = 5000D;
+            chartArea5.AxisY2.Minimum = 1D;
+            chartArea5.IsSameFontSizeForAllAxes = true;
+            chartArea5.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea5);
+            legend5.DockedToChartArea = "ChartArea1";
+            legend5.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
+            legend5.Name = "Legend1";
+            this.chart1.Legends.Add(legend5);
             this.chart1.Location = new System.Drawing.Point(6, 3);
             this.chart1.Name = "chart1";
-            series5.BorderWidth = 3;
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series5.Legend = "Legend1";
-            series5.LegendText = "Read MB/s";
-            series5.Name = "Read";
-            series6.BorderWidth = 3;
-            series6.ChartArea = "ChartArea1";
-            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series6.Legend = "Legend1";
-            series6.LegendText = "Write MB/s";
-            series6.Name = "Write";
-            this.chart1.Series.Add(series5);
-            this.chart1.Series.Add(series6);
+            series9.BorderWidth = 3;
+            series9.ChartArea = "ChartArea1";
+            series9.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series9.Legend = "Legend1";
+            series9.LegendText = "Read MB/s";
+            series9.Name = "Read";
+            series10.BorderWidth = 3;
+            series10.ChartArea = "ChartArea1";
+            series10.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series10.Legend = "Legend1";
+            series10.LegendText = "Write MB/s";
+            series10.Name = "Write";
+            this.chart1.Series.Add(series9);
+            this.chart1.Series.Add(series10);
             this.chart1.Size = new System.Drawing.Size(504, 182);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
-            title3.Name = "Title1";
-            title3.Text = "Actual Read/Write Performance:";
-            this.chart1.Titles.Add(title3);
+            title5.Name = "Title1";
+            title5.Text = "Actual Read/Write Performance:";
+            this.chart1.Titles.Add(title5);
             // 
             // textBox2
             // 
@@ -274,10 +274,9 @@
             // label1
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(440, 228);
+            this.label1.Location = new System.Drawing.Point(345, 228);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(61, 13);
+            this.label1.Size = new System.Drawing.Size(165, 22);
             this.label1.TabIndex = 0;
             this.label1.Text = "by SIRprise";
             // 
@@ -290,7 +289,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Name = "SSDLED";
             this.ShowInTaskbar = false;
-            this.Text = "SSD LED";
+            this.Text = "SSD-LED";
             this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SSDLED_FormClosing);
             this.splitContainer1.Panel1.ResumeLayout(false);

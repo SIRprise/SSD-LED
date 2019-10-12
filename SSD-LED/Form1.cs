@@ -21,13 +21,10 @@ namespace SSD_LED
         //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
         Icon iconBlack;
 
-        //PerformanceCounter hddIdleCnt = new PerformanceCounter("PhysicalDisk", "% Idle Time", "_Total");
-        //PerformanceCounter hddReadCnt = new PerformanceCounter("PhysicalDisk", "Disk Read Bytes/sec", "_Total");
-        //PerformanceCounter hddWriteCnt = new PerformanceCounter("PhysicalDisk", "Disk Write Bytes/sec", "_Total");
         private PerformanceCounter _diskReadCounter = new PerformanceCounter();
         private PerformanceCounter _diskWriteCounter = new PerformanceCounter();
 
-        private Int32 maxSpeedKBS;
+        private Int32 maxSpeedKBS = 1000;
         private bool endReading = true;
 
         private System.Timers.Timer readTimer;
@@ -41,8 +38,7 @@ namespace SSD_LED
             InitializeComponent();
 
             //hide form
-            //this.WindowState = FormWindowState.Minimized;
-            //this.ShowInTaskbar = false;
+            this.Visible = false;
 
             iconBlack = CreateIcon(Color.Black);
 
@@ -65,9 +61,12 @@ namespace SSD_LED
             //link click events
             quit.Click += exit_Click;
             info.Click += info_Click;
+            notifyIcon.Click += info_Click;
 
             timer1.Enabled = true;
             RefreshDriveList();
+
+            label1.Text = NameAndVersion() + "  by SIRprise";
 
             loadSettings();
 
@@ -78,6 +77,11 @@ namespace SSD_LED
             readTimer = new System.Timers.Timer();
             readTimer.Elapsed += new ElapsedEventHandler(OnReadTimeOut);
             readTimer.Interval = 20000;
+        }
+
+        private string NameAndVersion()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + " v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 
         private void OnReadTimeOut(object sender, ElapsedEventArgs e)
@@ -124,12 +128,17 @@ namespace SSD_LED
 
         void info_Click(object sender, EventArgs e)
         {
+            this.Visible = true;
             this.WindowState = FormWindowState.Normal;
             this.BringToFront();
         }
 
         void exit_Click(object sender, EventArgs e)
         {
+            this.Visible = true;
+            this.WindowState = FormWindowState.Normal;
+            this.BringToFront();
+            this.ShowInTaskbar = true;
             timer1.Enabled = false;
             /*
             if (driveDataClass != null)
@@ -158,12 +167,10 @@ namespace SSD_LED
                 bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", diskSelectionPFCStr);
             }
 
-            //Debug.WriteLine("Read: " + bytesPSRead + "; Write:" + bytesPSWrite);
             notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
 
             int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
             int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
-            //Debug.WriteLine("KBSRead: " + scaledKBSRead + "; KBSWrite:" + scaledKBSWrite);
             scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
             scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
             notifyIcon.Icon = CreateIcon(Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0));
@@ -173,32 +180,29 @@ namespace SSD_LED
             int scaledMBSWrite = (int)(bytesPSWrite / (1024 * 1024) + 0.5);
             scaledMBSRead = scaledMBSRead < 1 ? 1 : scaledMBSRead;
             scaledMBSWrite = scaledMBSWrite < 1 ? 1 : scaledMBSWrite;
+            
+            //if ((this.WindowState != FormWindowState.Minimized) && (this.Visible == true))
+            //{
+                chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
+                chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);               
 
-            chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
-            chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);
-
-            //Debug.WriteLine("tickCount: " + tickCount + "; MBSRead: " + scaledMBSRead + "; MBSWrite:" + scaledMBSWrite);
-
-            //if(this.WindowState != FormWindowState.Minimized)
-            //chart1.Invalidate();
-            tickCount++;
-
-            int maxTickCountChart = 100;
-            if (tickCount == maxTickCountChart)
-            {
-                tickCount = 0;
-                chart1.Series["Read"].Points.Clear();
-                chart1.Series["Write"].Points.Clear();
-            }
-            else
-            {
-                if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
+                int maxTickCountChart = 100;
+                if (tickCount == maxTickCountChart)
                 {
-                    chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
-                    chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
+                    tickCount = -1;
+                    chart1.Series["Read"].Points.Clear();
+                    chart1.Series["Write"].Points.Clear();
                 }
-            }
-
+                else
+                {
+                    if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
+                    {
+                        chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
+                        chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
+                    }
+                }
+            //}
+            tickCount++;
         }
 
         float GetCounterValue(PerformanceCounter pc, string categoryName, string counterName, string instanceName)
@@ -252,9 +256,11 @@ namespace SSD_LED
         private void SSDLED_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason != CloseReason.ApplicationExitCall)
+            {
                 e.Cancel = true;
-            this.WindowState = FormWindowState.Minimized;
-            this.ShowInTaskbar = false;
+                this.WindowState = FormWindowState.Minimized;
+                this.Visible = false;
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
