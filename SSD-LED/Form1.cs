@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
@@ -11,9 +12,22 @@ namespace SSD_LED
 {
     public partial class SSDLED : Form
     {
-        private readonly NotifyIcon notifyIcon = new NotifyIcon();
-        //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
+        /*
+        [System.Runtime.InteropServices.DllImport("psapi.dll", CharSet = CharSet.Auto)]
+        extern static int EmptyWorkingSet(IntPtr hwProc);
+
+        static void MinimizeFootprint()
+        {
+            EmptyWorkingSet(Process.GetCurrentProcess().Handle);
+        }
+        */
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = CharSet.Auto)]
+        extern static bool DestroyIcon(IntPtr handle);
+
+        private NotifyIcon notifyIcon;
         Icon iconBlack;
+        //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
 
         private PerformanceCounter _diskReadCounter = new PerformanceCounter();
         private PerformanceCounter _diskWriteCounter = new PerformanceCounter();
@@ -35,28 +49,9 @@ namespace SSD_LED
             this.Visible = false;
 
             iconBlack = CreateIcon(Color.Black);
-
-            notifyIcon.Icon = iconBlack;
-            notifyIcon.Visible = true;
+            initTrayIcon();
             notifyIcon.Text = "Initializing...";
 
-            //create menu items
-            MenuItem info = new MenuItem("Preferences");
-            MenuItem quit = new MenuItem("Exit");
-            ContextMenu contextMenu = new ContextMenu();
-
-            //add items to menu
-            contextMenu.MenuItems.Add(info);
-            contextMenu.MenuItems.Add(quit);
-
-            //add menu to symbol
-            notifyIcon.ContextMenu = contextMenu;
-
-            //link click events
-            quit.Click += exit_Click;
-            info.Click += info_Click;
-            notifyIcon.Click += info_Click;
-            
             RefreshDriveList();
 
             label1.Text = NameAndVersion() + "  by SIRprise";
@@ -82,6 +77,39 @@ namespace SSD_LED
                 Application.Exit();
             }
             timer1.Enabled = true;
+            notifyIcon.Text = "";
+            //MinimizeFootprint();
+        }
+
+        private void initTrayIcon()
+        {
+            notifyIcon = new NotifyIcon();
+            notifyIcon.Icon = iconBlack;
+            notifyIcon.Visible = true;
+
+            //create menu items
+            MenuItem info = new MenuItem("Preferences");
+            MenuItem quit = new MenuItem("Exit");
+            ContextMenu contextMenu = new ContextMenu();
+
+            //add items to menu
+            contextMenu.MenuItems.Add(info);
+            contextMenu.MenuItems.Add(quit);
+
+            //add menu to symbol
+            notifyIcon.ContextMenu = contextMenu;
+
+            //link click events
+            quit.Click += exit_Click;
+            info.Click += info_Click;
+            notifyIcon.Click += info_Click;
+        }
+
+        private void removeTrayIcon()
+        {
+            notifyIcon.Visible = false;
+            notifyIcon.Icon = null;
+            notifyIcon.Dispose();
         }
 
         private string NameAndVersion()
@@ -109,25 +137,49 @@ namespace SSD_LED
         {
             Icon icon = null;
 
+            //create the icon to be written on
+            Bitmap bitMapImage = new Bitmap(50, 50);
+            Graphics graphicImage = Graphics.FromImage(bitMapImage);
+
+            LinearGradientBrush lgb = new LinearGradientBrush(new Rectangle(0, 0, 50, 50), color, Color.FromArgb(color.A, (int)color.R / 5, (int)color.G / 5, (int)color.B / 5), 0f, true);
+            graphicImage.FillEllipse(lgb, new Rectangle(0, 0, 50, 50));
+
+            IntPtr hBmp = IntPtr.Zero;
+            //sometimes there is an gdi+ error...because we get no more handles...or we lose handle just before getting icon(!)          
             try
             {
-                //create the icon to be written on
-                Bitmap bitMapImage = new Bitmap(50, 50);
-                Graphics graphicImage = Graphics.FromImage(bitMapImage);
-
-                LinearGradientBrush lgb = new LinearGradientBrush(new Rectangle(0, 0, 50, 50), color, Color.FromArgb(color.A,(int)color.R/5,(int)color.G/5,(int)color.B/5), 0f, true);
-                graphicImage.FillEllipse(lgb, new Rectangle(0, 0, 50, 50));
-
-
-                icon = System.Drawing.Icon.FromHandle(bitMapImage.GetHicon());
-
-                //cleanup
-                graphicImage.Dispose();
-                bitMapImage.Dispose();
+                hBmp = bitMapImage.GetHicon();
+                icon = System.Drawing.Icon.FromHandle(hBmp);
             }
             catch
             {
+                icon = iconBlack;
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
             }
+
+            //cleanup
+            /*
+            //MS seemed to forget to free the handle in the destructor... but if we do it, we lose our icon!?
+            //https://stackoverflow.com/questions/12026664/a-generic-error-occurred-in-gdi-when-calling-bitmap-gethicon
+            Thread.MemoryBarrier();
+            System.GC.Collect();
+            System.GC.WaitForPendingFinalizers();
+            Application.DoEvents();
+            if(hBmp != IntPtr.Zero)
+                DestroyIcon(hBmp);
+                */
+            graphicImage.Dispose();
+            bitMapImage.Dispose();
+
+            if (icon.Size.Height == 0)
+            {
+                //here we are, if we destroy the handle...
+                icon = iconBlack;
+                System.GC.Collect();
+                System.GC.WaitForPendingFinalizers();
+            }
+
             return icon;
         }
 
@@ -153,6 +205,7 @@ namespace SSD_LED
             }
              */
             //Close();
+            removeTrayIcon();
             Application.Exit();
         }
 
@@ -173,42 +226,54 @@ namespace SSD_LED
                 bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", diskSelectionPFCStr);
             }
 
-            notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
+            //notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
 
             int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
             int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
             scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
             scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
+
+            Icon temp = notifyIcon.Icon;
             notifyIcon.Icon = CreateIcon(Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0));
+            if (temp != iconBlack)
+            {
+                //if we don't do this, windows refuses after 10000
+                DestroyIcon(temp.Handle);
+                temp.Dispose();
+            }
+
+            //notifyIcon.Visible = false;
+            //notifyIcon.Visible = true;
 
             button3.BackColor = Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0);
             int scaledMBSRead = (int)(bytesPSRead / (1024 * 1024) + 0.5);
             int scaledMBSWrite = (int)(bytesPSWrite / (1024 * 1024) + 0.5);
             scaledMBSRead = scaledMBSRead < 1 ? 1 : scaledMBSRead;
             scaledMBSWrite = scaledMBSWrite < 1 ? 1 : scaledMBSWrite;
-            
+
             //if ((this.WindowState != FormWindowState.Minimized) && (this.Visible == true))
             //{
-                chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
-                chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);               
+            chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
+            chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);
 
-                int maxTickCountChart = 100;
-                if (tickCount == maxTickCountChart)
+            int maxTickCountChart = 100;
+            if (tickCount == maxTickCountChart)
+            {
+                tickCount = -1;
+                //avoid icon is getting lost...but crashs if context menu is opened at the wrong time...
+                //removeTrayIcon();
+                //initTrayIcon();
+                chart1.Series["Read"].Points.Clear();
+                chart1.Series["Write"].Points.Clear();
+            }
+            else
+            {
+                if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
                 {
-                    tickCount = -1;
-                    notifyIcon.Visible = false;
-                    notifyIcon.Visible = true; //should avoid icons getting lost...
-                    chart1.Series["Read"].Points.Clear();
-                    chart1.Series["Write"].Points.Clear();
+                    chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
+                    chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
                 }
-                else
-                {
-                    if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
-                    {
-                        chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
-                        chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
-                    }
-                }
+            }
             //}
             tickCount++;
         }
@@ -265,7 +330,7 @@ namespace SSD_LED
         {
             if (e.CloseReason == CloseReason.ApplicationExitCall)
             {
-                notifyIcon.Visible = false;
+                removeTrayIcon();
                 base.OnFormClosing(e);
             }
             else
@@ -385,7 +450,7 @@ namespace SSD_LED
                 button4.Enabled = false;
                 endReading = false;
                 readTimer.Enabled = true;
-                readThread = new Thread(delegate() { ReadSpeed(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)); });
+                readThread = new Thread(delegate () { ReadSpeed(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)); });
                 readThread.Start();
             }
         }
