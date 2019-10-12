@@ -1,1 +1,4 @@
 *.suo
+/SSD-LED/obj/*
+/SSD-LED/bin/*
+!/SSD-LED/bin/Release/SSD-LED.exe
