@@ -1,15 +1,8 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
-using System.Linq;
-using System.Management;
-using System.Text;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
