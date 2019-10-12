@@ -2,3 +2,4 @@
 /SSD-LED/obj/*
 /SSD-LED/bin/*
 !/SSD-LED/bin/Release/SSD-LED.exe
+!/SSD-LED/bin/Release/SSD-LED.exe.config
