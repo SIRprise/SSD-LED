@@ -152,7 +152,7 @@ namespace SSD_LED
                 driveDataClass.Dispose();
             }
              */
-            Close();
+            //Close();
             Application.Exit();
         }
 
@@ -196,6 +196,8 @@ namespace SSD_LED
                 if (tickCount == maxTickCountChart)
                 {
                     tickCount = -1;
+                    notifyIcon.Visible = false;
+                    notifyIcon.Visible = true; //should avoid icons getting lost...
                     chart1.Series["Read"].Points.Clear();
                     chart1.Series["Write"].Points.Clear();
                 }
@@ -261,7 +263,12 @@ namespace SSD_LED
 
         private void SSDLED_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason != CloseReason.ApplicationExitCall)
+            if (e.CloseReason == CloseReason.ApplicationExitCall)
+            {
+                notifyIcon.Visible = false;
+                base.OnFormClosing(e);
+            }
+            else
             {
                 e.Cancel = true;
                 this.WindowState = FormWindowState.Minimized;
