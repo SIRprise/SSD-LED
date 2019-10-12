@@ -8,3 +8,5 @@ System-Tray-icon:
 Preferences window:
 
 ![](SSDLED.PNG)
+
+![](SSDLED2.PNG)
