@@ -27,13 +27,37 @@ namespace SSD_LED
         private int tickCount = 0;
         private string diskSelectionPFCStr = null;
 
+        #region Debug hiding form...
+        /*
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!this.IsHandleCreated)
+            {
+                value = false;
+                CreateHandle();
+            }
+            base.SetVisibleCore(value);
+        }
+        
+        public bool Visible
+        {
+            get => base.Visible;
+            set => base.Visible = value;
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            this.Visible = false;
+        }
+        */
+        #endregion
 
         public SSDLED()
         {
             InitializeComponent();
 
-            //hide form
-            this.Visible = false;
+            //this.Hide(); is useless here...
 
             iconBlack = CreateIcon(Color.Black);
             initTrayIcon();
@@ -223,31 +247,36 @@ namespace SSD_LED
             scaledMBSRead = scaledMBSRead < 1 ? 1 : scaledMBSRead;
             scaledMBSWrite = scaledMBSWrite < 1 ? 1 : scaledMBSWrite;
 
-            //if ((this.WindowState != FormWindowState.Minimized) && (this.Visible == true))
-            //{
-            chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
-            chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);
-
             int maxTickCountChart = 100;
-            if (tickCount == maxTickCountChart)
+            if ((this.WindowState != FormWindowState.Minimized) && (this.Visible == true))
             {
-                tickCount = -1;
-                //avoid icon is getting lost...but crashs if context menu is opened at the wrong time...
-                //removeTrayIcon();
-                //initTrayIcon();
-                chart1.Series["Read"].Points.Clear();
-                chart1.Series["Write"].Points.Clear();
+                chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
+                chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);
+
+                if (tickCount == maxTickCountChart)
+                {
+                    tickCount = -1;
+                    //avoid icon is getting lost...but crashs if context menu is opened at the wrong time...
+                    //removeTrayIcon();
+                    //initTrayIcon();
+                    chart1.Series["Read"].Points.Clear();
+                    chart1.Series["Write"].Points.Clear();
+                }
+                else
+                {
+                    if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
+                    {
+                        chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
+                        chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
+                    }
+                }
+
+                tickCount++;
             }
             else
             {
-                if (chart1.ChartAreas["ChartArea1"].AxisX.Maximum != maxTickCountChart)
-                {
-                    chart1.ChartAreas["ChartArea1"].AxisX.Maximum = maxTickCountChart;
-                    chart1.ChartAreas["ChartArea1"].AxisX2.Maximum = maxTickCountChart;
-                }
+                tickCount = 100;
             }
-            //}
-            tickCount++;
         }
         #endregion
 
@@ -269,7 +298,7 @@ namespace SSD_LED
             pc.InstanceName = instanceName;
             return pc.NextValue();
         }
-        
+
         string GetInstanceNameByDriveIndex(int driveIndex)
         {
             PerformanceCounterCategory pfcCat = new PerformanceCounterCategory("PhysicalDisk");
@@ -355,6 +384,12 @@ namespace SSD_LED
             //check health() via MSFT_StorageReliabilityCounter class
         }
 
+        private void SSDLED_Load(object sender, EventArgs e)
+        {
+            //workaround: visibility is ALWAYS true after constructor
+            this.Visible = false;
+        }
+
         private void SSDLED_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.ApplicationExitCall)
@@ -373,7 +408,7 @@ namespace SSD_LED
         void info_Click(object sender, EventArgs e)
         {
             //toggle
-            if (this.Visible == false)
+            if ((this.Visible == false) && (this.WindowState == FormWindowState.Minimized))
             {
                 //unhide
                 this.Visible = true;
@@ -528,12 +563,12 @@ namespace SSD_LED
             }
             Properties.Settings.Default.Save();
         }
+
+
+
         #endregion
 
-        
-
-        
     }
 
-    
+
 }
