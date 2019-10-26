@@ -12,6 +12,8 @@ namespace SSD_LED
 {
     public partial class SSDLED : Form
     {
+#warning TODO: check if screen to restore window is availabe (case: docking station) + show tooltip with process which has most influence in RW
+
         private NotifyIcon notifyIcon;
         Icon iconBlack;
         //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
