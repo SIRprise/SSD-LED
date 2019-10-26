@@ -6,3 +6,4 @@
 !/SSD-LED/bin/Release/SSD-LED.exe
 !/SSD-LED/bin/Release/SSD-LED.exe.config
 /SSD-LED/publish/*
+/.vs/*
