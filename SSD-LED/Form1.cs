@@ -119,7 +119,7 @@ namespace SSD_LED
             //link click events
             quit.Click += exit_Click;
             info.Click += info_Click;
-            notifyIcon.Click += info_Click;
+            notifyIcon.MouseClick += notify_Click;
         }
 
         private void removeTrayIcon()
@@ -404,6 +404,14 @@ namespace SSD_LED
                 e.Cancel = true;
                 this.WindowState = FormWindowState.Minimized;
                 this.Visible = false;
+            }
+        }
+
+        void notify_Click(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                info_Click(this, null);
             }
         }
 
