@@ -44,7 +44,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -70,6 +70,9 @@
   <PropertyGroup />
   <PropertyGroup>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -125,7 +128,7 @@
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
       <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 %28x86 und x64%29</ProductName>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -155,4 +158,24 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="PostBuildMacros">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output TaskParameter="Assemblies" ItemName="Targets" />
+    </GetAssemblyIdentity>
+    <ItemGroup>
+      <VersionNumber Include="@(Targets->'%(Version)')" />
+    </ItemGroup>
+  </Target>
+  <PropertyGroup>
+    <PostBuildEventDependsOn>
+    $(PostBuildEventDependsOn);
+    PostBuildMacros;
+  </PostBuildEventDependsOn>
+    <PostBuildEvent>rem for /F "tokens=4" %25%25F in ('filever.exe /B /A /D "$(TargetDir)$(ProjectName).exe"') do (
+  rem set VERSION=%25F
+rem )
+rem echo The version is %25VERSION%25
+if not exist "$(SolutionDir)\releases\@(VersionNumber)" mkdir "$(SolutionDir)\releases\@(VersionNumber)"
+copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)\releases\@(VersionNumber)\$(ProjectName).exe"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
