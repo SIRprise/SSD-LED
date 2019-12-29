@@ -175,7 +175,7 @@
   rem set VERSION=%25F
 rem )
 rem echo The version is %25VERSION%25
-if not exist "$(SolutionDir)\releases\@(VersionNumber)" mkdir "$(SolutionDir)\releases\@(VersionNumber)"
-copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)\releases\@(VersionNumber)\$(ProjectName).exe"</PostBuildEvent>
+rem if not exist "$(SolutionDir)\releases\@(VersionNumber)" mkdir "$(SolutionDir)\releases\@(VersionNumber)"
+rem copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)\releases\@(VersionNumber)\$(ProjectName).exe"</PostBuildEvent>
   </PropertyGroup>
 </Project>
