@@ -254,23 +254,24 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(3, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(275, 13);
+            this.label2.Size = new System.Drawing.Size(269, 13);
             this.label2.TabIndex = 2;
-            this.label2.Text = "Activity Indicator Threshhold/Scaling (Drive max. speed):";
+            this.label2.Text = "Activity Indicator Threshold/Scaling (Drive max. speed):";
             // 
             // trackBar1
             // 
             this.trackBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBar1.LargeChange = 100;
+            this.trackBar1.LargeChange = 1000;
             this.trackBar1.Location = new System.Drawing.Point(6, 16);
-            this.trackBar1.Maximum = 5000;
+            this.trackBar1.Maximum = 10000;
+            this.trackBar1.Minimum = 1;
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(495, 45);
             this.trackBar1.SmallChange = 10;
             this.trackBar1.TabIndex = 1;
-            this.trackBar1.TickFrequency = 100;
-            this.trackBar1.Value = 100;
+            this.trackBar1.TickFrequency = 500;
+            this.trackBar1.Value = 1000;
             this.trackBar1.ValueChanged += new System.EventHandler(this.trackBar1_ValueChanged);
             // 
             // label1

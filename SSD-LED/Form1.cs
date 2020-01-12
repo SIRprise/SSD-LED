@@ -498,6 +498,7 @@ namespace SSD_LED
         private void trackBar1_ValueChanged(object sender, EventArgs e)
         {
             maxSpeedKBS = trackBar1.Value;
+            maxSpeedKBS = (maxSpeedKBS > 0) ? maxSpeedKBS : 1;
             textBox1.Text = maxSpeedKBS + " KB/s";
         }
 
