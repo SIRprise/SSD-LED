@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -375,6 +376,17 @@ namespace SSD_LED
             PerformanceCounterCategory pfcCat = new PerformanceCounterCategory("PhysicalDisk");
             comboBox1.Items.AddRange(pfcCat.GetInstanceNames());
         }
+
+        private void SetStartup(bool create)
+        {
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey
+                ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+            if (create)
+                rk.SetValue("SSD-LED", Application.ExecutablePath);
+            else
+                rk.DeleteValue("SSD-LED", false);
+        }
         #endregion
 
         #region events
@@ -575,7 +587,11 @@ namespace SSD_LED
             Properties.Settings.Default.Save();
         }
 
-
+        //change autostart setting
+        private void button5_Click(object sender, EventArgs e)
+        {
+            SetStartup(checkBox2.Checked);
+        }
 
         #endregion
 
