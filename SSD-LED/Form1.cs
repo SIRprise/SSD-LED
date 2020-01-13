@@ -17,6 +17,7 @@ namespace SSD_LED
 
         private NotifyIcon notifyIcon;
         Icon iconBlack;
+        Color oldIconColor = Color.Black;
         //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
 
         private PerformanceCounter _diskReadCounter = new PerformanceCounter();
@@ -233,12 +234,18 @@ namespace SSD_LED
             scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
 
             Icon temp = notifyIcon.Icon;
-            notifyIcon.Icon = CreateIcon(Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0));
-            if (temp != iconBlack)
+            Color newColor = Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0);
+            //create only new icon if it changed
+            if (oldIconColor != newColor)
             {
-                //if we don't do this, windows refuses after 10000
-                DestroyIcon(temp.Handle);
-                temp.Dispose();
+                notifyIcon.Icon = CreateIcon(newColor);
+                if (temp != iconBlack)
+                {
+                    //if we don't do this, windows refuses after 10000
+                    DestroyIcon(temp.Handle);
+                    temp.Dispose();
+                }
+                oldIconColor = newColor;
             }
 
             //notifyIcon.Visible = false;
