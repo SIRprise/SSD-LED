@@ -1,3 +1,5 @@
+![](https://ci.appveyor.com/api/projects/status/github/SIRprise/SSD-LED?branch=master&svg=true)
+
 # SSD-LED
  Drive Activity Indicator
 
