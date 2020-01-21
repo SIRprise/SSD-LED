@@ -1,4 +1,4 @@
-name: .NET 4.8
+name: .NET 3.5 builder
 
 on: [push]
 
@@ -11,4 +11,9 @@ jobs:
       - name: Build DotNET35
         run: |
            cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
-           .\MSBuild.exe $Env:GITHUB_WORKSPACE\SSD-LED.sln
+           .\MSBuild.exe /p:Configuration=Release $Env:GITHUB_WORKSPACE
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: Uploader
+          path: SSD-LED\bin\Release
