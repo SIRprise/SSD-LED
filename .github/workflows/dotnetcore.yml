@@ -1,4 +1,4 @@
-name: .NET 3.5 builder
+name: .NET builder
 
 on: [push]
 
@@ -8,12 +8,12 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-      - name: Build DotNET35
+      - name: Build DotNET
         run: |
            cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
            .\MSBuild.exe /p:Configuration=Release $Env:GITHUB_WORKSPACE
       - name: Upload Artifact
         uses: actions/upload-artifact@v1
         with:
-          name: Uploader
+          name: SSD-LED-AutoBuild
           path: SSD-LED\bin\Release
