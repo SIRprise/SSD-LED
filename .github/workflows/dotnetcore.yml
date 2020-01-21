@@ -8,12 +8,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-      - name: msbuild
-        working-directory: <pjPath>
-        run: "& 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/MSBuild/Current/Bin/MSBuild.exe' <options>"
-        #<options>写编译参数
-      #- name: upload
-      #  uses: actions/upload-artifact@v1
-      #  with:
-      #    name: compiled_files
-      #    path: <outputPath>  #这里写编译出来的文件夹的路径，一般是  ./xx/bin/Debug 这种
+      - name: Setup MSBuild.exe
+        uses: warrenbuckley/Setup-MSBuild@v1
+
+      - name: MSBuild
+        working-directory: src
+        run: msbuild MyProject.csproj
