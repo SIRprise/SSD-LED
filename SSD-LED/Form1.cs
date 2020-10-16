@@ -228,6 +228,7 @@ namespace SSD_LED
 
             //notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
 
+#warning div by 0 possible!!!
             int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
             int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
             scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
