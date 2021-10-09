@@ -14,5 +14,17 @@
     <Setting Name="DriveSelected" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="MixColors" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ColorDefault" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#000000</Value>
+    </Setting>
+    <Setting Name="ColorRead" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#00ff00</Value>
+    </Setting>
+    <Setting Name="ColorWrite" Type="System.String" Scope="User">
+      <Value Profile="(Default)">#ff0000</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

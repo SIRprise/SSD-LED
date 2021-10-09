@@ -16,8 +16,12 @@ namespace SSD_LED
 #warning TODO: check if screen to restore window is availabe (case: docking station) + show tooltip with process which has most influence in RW
 
         private NotifyIcon notifyIcon;
-        Icon iconBlack;
-        Color oldIconColor = Color.Black;
+        Color defaultColor = Color.Black;
+        Color writeColor = Color.FromArgb(255,0,0);
+        Color readColor = Color.FromArgb(0,255,0);
+        bool enableMixColors = true;
+        Icon iconDefault;
+        Color oldIconColor;
         //ManagementClass driveDataClass = new ManagementClass("Win32_PerfFormattedData_PerfDisk_PhysicalDisk");
 
         private PerformanceCounter _diskReadCounter = new PerformanceCounter();
@@ -63,7 +67,8 @@ namespace SSD_LED
 
             //this.Hide(); is useless here...
 
-            iconBlack = CreateIcon(Color.Black);
+            oldIconColor = defaultColor;
+            iconDefault = CreateIcon(defaultColor);
             initTrayIcon();
             notifyIcon.Text = "Initializing...";
 
@@ -103,7 +108,7 @@ namespace SSD_LED
         private void initTrayIcon()
         {
             notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = iconBlack;
+            notifyIcon.Icon = iconDefault;
             notifyIcon.Visible = true;
 
             //create menu items
@@ -151,7 +156,7 @@ namespace SSD_LED
             }
             catch
             {
-                icon = iconBlack;
+                icon = iconDefault;
                 System.GC.Collect();
                 System.GC.WaitForPendingFinalizers();
             }
@@ -173,7 +178,7 @@ namespace SSD_LED
             if (icon.Size.Height == 0)
             {
                 //here we are, if we destroy the handle...
-                icon = iconBlack;
+                icon = iconDefault;
                 System.GC.Collect();
                 System.GC.WaitForPendingFinalizers();
             }
@@ -228,18 +233,15 @@ namespace SSD_LED
 
             //notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
 
-            int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
-            int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
-            scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
-            scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
+            Color newColor = CalculateColor(bytesPSRead, bytesPSWrite);
 
             Icon temp = notifyIcon.Icon;
-            Color newColor = Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0);
+            
             //create only new icon if it changed
             if (oldIconColor != newColor)
             {
                 notifyIcon.Icon = CreateIcon(newColor);
-                if (temp != iconBlack)
+                if (temp != iconDefault)
                 {
                     //if we don't do this, windows refuses after 10000
                     DestroyIcon(temp.Handle);
@@ -251,7 +253,45 @@ namespace SSD_LED
             //notifyIcon.Visible = false;
             //notifyIcon.Visible = true;
 
-            button3.BackColor = Color.FromArgb(scaledKBSWrite, scaledKBSRead, 0);
+            updateChartWindow(bytesPSRead, bytesPSWrite, newColor);
+        }
+
+        private Color CalculateColor(float bytesPSRead, float bytesPSWrite)
+        {
+            if(enableMixColors)
+            {
+                int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
+                int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
+                scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
+                scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
+
+                int R = (int)(((readColor.R / 255f) * scaledKBSRead + (writeColor.R / 255f) * scaledKBSWrite));// / 2);
+                int G = (int)(((readColor.G / 255f) * scaledKBSRead + (writeColor.G / 255f) * scaledKBSWrite));// / 2);
+                int B = (int)(((readColor.B / 255f) * scaledKBSRead + (writeColor.B / 255f) * scaledKBSWrite));// / 2);
+                R = R > 255 ? 255 : R;
+                G = G > 255 ? 255 : G;
+                B = B > 255 ? 255 : B;
+                return Color.FromArgb(R, G, B);
+            }
+            else
+            {
+                if( (((bytesPSRead / 1024) / maxSpeedKBS) > 0) || (((bytesPSRead / 1024) / maxSpeedKBS) > 0))
+                {
+                    if(bytesPSRead>bytesPSWrite)
+                    {
+                        return readColor;
+                    }
+                    else
+                    {
+                        return writeColor;
+                    }
+                }
+                return defaultColor;
+            }
+        }
+
+        private void updateChartWindow(float bytesPSRead, float bytesPSWrite,Color buttonColor)
+        {
             int scaledMBSRead = (int)(bytesPSRead / (1024 * 1024) + 0.5);
             int scaledMBSWrite = (int)(bytesPSWrite / (1024 * 1024) + 0.5);
             scaledMBSRead = scaledMBSRead < 1 ? 1 : scaledMBSRead;
@@ -260,6 +300,7 @@ namespace SSD_LED
             int maxTickCountChart = 100;
             if ((this.WindowState != FormWindowState.Minimized) && (this.Visible == true))
             {
+                button3.BackColor = buttonColor;
                 chart1.Series["Read"].Points.AddXY(tickCount, scaledMBSRead);
                 chart1.Series["Write"].Points.AddXY(tickCount, scaledMBSWrite);
 
@@ -574,12 +615,33 @@ namespace SSD_LED
                     diskSelectionPFCStr = null;
                 }
                 checkBox1.Checked = tempBool;
+
+                defaultColor = ColorTranslator.FromHtml(Properties.Settings.Default["ColorDefault"].ToString());
+                iconDefault = CreateIcon(defaultColor);
+                tbColorDefault.BackColor = defaultColor;
+                tbColorDefault.Text = defaultColor.ToString();
+
+                readColor = ColorTranslator.FromHtml(Properties.Settings.Default["ColorRead"].ToString());
+                tbColorRead.BackColor = readColor;
+                tbColorRead.Text = readColor.ToString();
+
+                writeColor = ColorTranslator.FromHtml(Properties.Settings.Default["ColorWrite"].ToString());
+                tbColorWrite.BackColor = writeColor;
+                tbColorWrite.Text = writeColor.ToString();
+
                 return true;
             }
             catch (Exception)
             {
                 return false;
             }
+        }
+
+        private string ToHexValue(Color color)
+        {
+            return "#" + color.R.ToString("X2") +
+                         color.G.ToString("X2") +
+                         color.B.ToString("X2");
         }
 
         private void saveSettings()
@@ -591,6 +653,9 @@ namespace SSD_LED
             {
                 Properties.Settings.Default["DriveSelected"] = diskSelectionPFCStr;
             }
+            Properties.Settings.Default["ColorDefault"] = ToHexValue(defaultColor); //ColorTranslator.ToHtml(defaultColor);
+            Properties.Settings.Default["ColorRead"] = ToHexValue(readColor);
+            Properties.Settings.Default["ColorWrite"] = ToHexValue(writeColor);
             Properties.Settings.Default.Save();
         }
 
@@ -602,6 +667,46 @@ namespace SSD_LED
 
         #endregion
 
+        private void button6_Click(object sender, EventArgs e)
+        {
+            ColorDialog colorDialog1 = new ColorDialog();
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                tbColorDefault.BackColor = colorDialog1.Color;
+                tbColorDefault.Text = colorDialog1.Color.ToString();
+            }
+        }
+
+        private void btnColorRead_Click(object sender, EventArgs e)
+        {
+            ColorDialog colorDialog1 = new ColorDialog();
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                tbColorRead.BackColor = colorDialog1.Color;
+                tbColorRead.Text = colorDialog1.Color.ToString();
+            }
+        }
+
+        private void btnColorWrite_Click(object sender, EventArgs e)
+        {
+            ColorDialog colorDialog1 = new ColorDialog();
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                tbColorWrite.BackColor = colorDialog1.Color;
+                tbColorWrite.Text = colorDialog1.Color.ToString();
+            }
+        }
+
+        private void btnApplyColor_Click(object sender, EventArgs e)
+        {
+            //apply code
+            defaultColor = tbColorDefault.BackColor;
+            readColor = tbColorRead.BackColor;
+            writeColor = tbColorWrite.BackColor;
+
+            iconDefault = CreateIcon(defaultColor);
+            enableMixColors = checkBox3.Checked;
+        }
     }
 
 

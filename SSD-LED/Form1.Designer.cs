@@ -49,7 +49,7 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnSaveCfg = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.label1 = new System.Windows.Forms.Label();
@@ -58,6 +58,16 @@
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.button5 = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
+            this.btnSaveCfg2 = new System.Windows.Forms.Button();
+            this.btnApplyColor = new System.Windows.Forms.Button();
+            this.tbColorWrite = new System.Windows.Forms.TextBox();
+            this.btnColorWrite = new System.Windows.Forms.Button();
+            this.tbColorRead = new System.Windows.Forms.TextBox();
+            this.btnColorRead = new System.Windows.Forms.Button();
+            this.tbColorDefault = new System.Windows.Forms.TextBox();
+            this.btnColorDefault = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -70,6 +80,7 @@
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -123,7 +134,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.comboBox1);
             this.splitContainer1.Panel2.Controls.Add(this.checkBox1);
             this.splitContainer1.Panel2.Controls.Add(this.button2);
-            this.splitContainer1.Panel2.Controls.Add(this.button1);
+            this.splitContainer1.Panel2.Controls.Add(this.btnSaveCfg);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
             this.splitContainer1.Panel2.Controls.Add(this.trackBar1);
             this.splitContainer1.Panel2.Controls.Add(this.label1);
@@ -275,16 +286,16 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // button1
+            // btnSaveCfg
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(350, 192);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 3;
-            this.button1.Text = "Save Config";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnSaveCfg.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveCfg.Location = new System.Drawing.Point(350, 192);
+            this.btnSaveCfg.Name = "btnSaveCfg";
+            this.btnSaveCfg.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveCfg.TabIndex = 3;
+            this.btnSaveCfg.Text = "Save Config";
+            this.btnSaveCfg.UseVisualStyleBackColor = true;
+            this.btnSaveCfg.Click += new System.EventHandler(this.button1_Click);
             // 
             // label2
             // 
@@ -342,6 +353,19 @@
             this.splitContainer2.Panel1.Controls.Add(this.checkBox2);
             this.splitContainer2.Panel1.Controls.Add(this.button5);
             this.splitContainer2.Panel1.Controls.Add(this.label4);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.checkBox3);
+            this.splitContainer2.Panel2.Controls.Add(this.btnSaveCfg2);
+            this.splitContainer2.Panel2.Controls.Add(this.btnApplyColor);
+            this.splitContainer2.Panel2.Controls.Add(this.tbColorWrite);
+            this.splitContainer2.Panel2.Controls.Add(this.btnColorWrite);
+            this.splitContainer2.Panel2.Controls.Add(this.tbColorRead);
+            this.splitContainer2.Panel2.Controls.Add(this.btnColorRead);
+            this.splitContainer2.Panel2.Controls.Add(this.tbColorDefault);
+            this.splitContainer2.Panel2.Controls.Add(this.btnColorDefault);
+            this.splitContainer2.Panel2.Controls.Add(this.label5);
             this.splitContainer2.Size = new System.Drawing.Size(518, 423);
             this.splitContainer2.SplitterDistance = 237;
             this.splitContainer2.TabIndex = 0;
@@ -375,6 +399,101 @@
             this.label4.TabIndex = 0;
             this.label4.Text = "Autostart setting";
             // 
+            // btnSaveCfg2
+            // 
+            this.btnSaveCfg2.Location = new System.Drawing.Point(87, 131);
+            this.btnSaveCfg2.Name = "btnSaveCfg2";
+            this.btnSaveCfg2.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveCfg2.TabIndex = 8;
+            this.btnSaveCfg2.Text = "Save Config";
+            this.btnSaveCfg2.UseVisualStyleBackColor = true;
+            this.btnSaveCfg2.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // btnApplyColor
+            // 
+            this.btnApplyColor.Location = new System.Drawing.Point(6, 131);
+            this.btnApplyColor.Name = "btnApplyColor";
+            this.btnApplyColor.Size = new System.Drawing.Size(75, 23);
+            this.btnApplyColor.TabIndex = 7;
+            this.btnApplyColor.Text = "apply";
+            this.btnApplyColor.UseVisualStyleBackColor = true;
+            this.btnApplyColor.Click += new System.EventHandler(this.btnApplyColor_Click);
+            // 
+            // tbColorWrite
+            // 
+            this.tbColorWrite.Enabled = false;
+            this.tbColorWrite.Location = new System.Drawing.Point(172, 80);
+            this.tbColorWrite.Name = "tbColorWrite";
+            this.tbColorWrite.Size = new System.Drawing.Size(100, 20);
+            this.tbColorWrite.TabIndex = 6;
+            // 
+            // btnColorWrite
+            // 
+            this.btnColorWrite.Location = new System.Drawing.Point(6, 78);
+            this.btnColorWrite.Name = "btnColorWrite";
+            this.btnColorWrite.Size = new System.Drawing.Size(75, 23);
+            this.btnColorWrite.TabIndex = 5;
+            this.btnColorWrite.Text = "Write";
+            this.btnColorWrite.UseVisualStyleBackColor = true;
+            this.btnColorWrite.Click += new System.EventHandler(this.btnColorWrite_Click);
+            // 
+            // tbColorRead
+            // 
+            this.tbColorRead.Enabled = false;
+            this.tbColorRead.Location = new System.Drawing.Point(172, 51);
+            this.tbColorRead.Name = "tbColorRead";
+            this.tbColorRead.Size = new System.Drawing.Size(100, 20);
+            this.tbColorRead.TabIndex = 4;
+            // 
+            // btnColorRead
+            // 
+            this.btnColorRead.Location = new System.Drawing.Point(6, 49);
+            this.btnColorRead.Name = "btnColorRead";
+            this.btnColorRead.Size = new System.Drawing.Size(75, 23);
+            this.btnColorRead.TabIndex = 3;
+            this.btnColorRead.Text = "Read";
+            this.btnColorRead.UseVisualStyleBackColor = true;
+            this.btnColorRead.Click += new System.EventHandler(this.btnColorRead_Click);
+            // 
+            // tbColorDefault
+            // 
+            this.tbColorDefault.Enabled = false;
+            this.tbColorDefault.Location = new System.Drawing.Point(172, 22);
+            this.tbColorDefault.Name = "tbColorDefault";
+            this.tbColorDefault.Size = new System.Drawing.Size(100, 20);
+            this.tbColorDefault.TabIndex = 2;
+            // 
+            // btnColorDefault
+            // 
+            this.btnColorDefault.Location = new System.Drawing.Point(6, 20);
+            this.btnColorDefault.Name = "btnColorDefault";
+            this.btnColorDefault.Size = new System.Drawing.Size(75, 23);
+            this.btnColorDefault.TabIndex = 1;
+            this.btnColorDefault.Text = "Default";
+            this.btnColorDefault.UseVisualStyleBackColor = true;
+            this.btnColorDefault.Click += new System.EventHandler(this.button6_Click);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(3, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(70, 13);
+            this.label5.TabIndex = 0;
+            this.label5.Text = "Color settings";
+            // 
+            // checkBox3
+            // 
+            this.checkBox3.AutoSize = true;
+            this.checkBox3.Checked = true;
+            this.checkBox3.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox3.Location = new System.Drawing.Point(6, 108);
+            this.checkBox3.Name = "checkBox3";
+            this.checkBox3.Size = new System.Drawing.Size(172, 17);
+            this.checkBox3.TabIndex = 9;
+            this.checkBox3.Text = "enable color scaling (mixcolors)";
+            this.checkBox3.UseVisualStyleBackColor = true;
+            // 
             // SSDLED
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -402,6 +521,8 @@
             this.tabPage2.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel1.PerformLayout();
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            this.splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -424,7 +545,7 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnSaveCfg;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.Label label1;
@@ -433,6 +554,16 @@
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.Button btnColorDefault;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox tbColorDefault;
+        private System.Windows.Forms.TextBox tbColorWrite;
+        private System.Windows.Forms.Button btnColorWrite;
+        private System.Windows.Forms.TextBox tbColorRead;
+        private System.Windows.Forms.Button btnColorRead;
+        private System.Windows.Forms.Button btnApplyColor;
+        private System.Windows.Forms.Button btnSaveCfg2;
+        private System.Windows.Forms.CheckBox checkBox3;
     }
 }
 
