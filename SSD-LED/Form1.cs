@@ -68,6 +68,13 @@ namespace SSD_LED
         {
             InitializeComponent();
 
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.File("logs/ssd_led.log", rollingInterval: RollingInterval.Day, fileSizeLimitBytes: 1024*100)
+                .CreateLogger();
+
+            Log.Information("Starting "+ NameAndVersion());
+
             //this.Hide(); is useless here...
 
             oldIconColor = defaultColor;
