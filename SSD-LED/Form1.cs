@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
+using Serilog;
 
 namespace SSD_LED
 {
@@ -34,6 +35,8 @@ namespace SSD_LED
         Thread readThread;
         private int tickCount = 0;
         private string diskSelectionPFCStr = null;
+        private int tickErrorCount = 0;
+        private int tickErrorCountMax = 3;
 
         #region Debug hiding form...
         /*
@@ -72,7 +75,25 @@ namespace SSD_LED
             initTrayIcon();
             notifyIcon.Text = "Initializing...";
 
-            RefreshDriveList();
+            if(!RefreshDriveList())
+            {
+                DialogResult dialogResult = MessageBox.Show("Error during initialization of PhysicalDisk list - try again?", "Initialization failed...", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    if (!RefreshDriveList())
+                    {
+                        Log.Error("Error during initialization of PhysicalDisk list");
+                        Log.CloseAndFlush();
+                        Application.Exit();
+                    }
+                }
+                else if (dialogResult == DialogResult.No)
+                {
+                    Log.Error("Error during initialization of PhysicalDisk list");
+                    Log.CloseAndFlush();
+                    Application.Exit();
+                }
+            }
 
             label1.Text = NameAndVersion() + "  by SIRprise";
 
@@ -89,11 +110,20 @@ namespace SSD_LED
 
             try
             {
-                SSDActivityPerfCount();
+                if(SSDActivityPerfCount())
+                {
+                    tickErrorCount = 0;
+                }
+                else
+                {
+                    tickErrorCount++;
+                }
             }
             catch
             {
                 MessageBox.Show("Error during initialization");
+                Log.Error("Error during initialization");
+                Log.CloseAndFlush();
                 Application.Exit();
             }
             timer1.Enabled = true;
@@ -214,29 +244,46 @@ namespace SSD_LED
         }
          */
 
-        public void SSDActivityPerfCount()
+        public bool SSDActivityPerfCount()
         {
             float bytesPSRead;
             float bytesPSWrite;
 
             if (!checkBox1.Checked || (diskSelectionPFCStr == null))
             {
-                bytesPSRead = GetCounterValue(_diskReadCounter, "PhysicalDisk", "Disk Read Bytes/sec", "_Total");
-                bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", "_Total");
+                try
+                {
+                    bytesPSRead = GetCounterValue(_diskReadCounter, "PhysicalDisk", "Disk Read Bytes/sec", "_Total");
+                    bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", "_Total");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("PhysicalDisk->_Total could not captured - Exception here: {exc}", ex);
+                    return false;
+                }
             }
             else
             {
-
-                bytesPSRead = GetCounterValue(_diskReadCounter, "PhysicalDisk", "Disk Read Bytes/sec", diskSelectionPFCStr);
-                bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", diskSelectionPFCStr);
+                try
+                {
+                    bytesPSRead = GetCounterValue(_diskReadCounter, "PhysicalDisk", "Disk Read Bytes/sec", diskSelectionPFCStr);
+                    bytesPSWrite = GetCounterValue(_diskWriteCounter, "PhysicalDisk", "Disk Write Bytes/sec", diskSelectionPFCStr);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("PhysicalDisk->{selectionString} could not captured - Exception here: {exc}", diskSelectionPFCStr ,ex);
+                    return false;
+                }
             }
 
             //notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
 
             Color newColor = CalculateColor(bytesPSRead, bytesPSWrite);
+            if (newColor == Color.Empty)
+                return false;
 
             Icon temp = notifyIcon.Icon;
-            
+
             //create only new icon if it changed
             if (oldIconColor != newColor)
             {
@@ -254,16 +301,29 @@ namespace SSD_LED
             //notifyIcon.Visible = true;
 
             updateChartWindow(bytesPSRead, bytesPSWrite, newColor);
+            return true;
         }
 
         private Color CalculateColor(float bytesPSRead, float bytesPSWrite)
         {
             if(enableMixColors)
             {
-                int scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
-                int scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
+                #warning div by 0 possible!!!
+                int scaledKBSRead = 0;
+                int scaledKBSWrite = 0;
+                try
+                {
+                    scaledKBSRead = (int)((bytesPSRead / 1024) / maxSpeedKBS * 255);
+                    scaledKBSWrite = (int)((bytesPSWrite / 1024) / maxSpeedKBS * 255);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("division by 0 - Exception here: {exc}",ex);
+                    return Color.Empty;
+                }
                 scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
                 scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
+
 
                 int R = (int)(((readColor.R / 255f) * scaledKBSRead + (writeColor.R / 255f) * scaledKBSWrite));// / 2);
                 int G = (int)(((readColor.G / 255f) * scaledKBSRead + (writeColor.G / 255f) * scaledKBSWrite));// / 2);
@@ -328,6 +388,7 @@ namespace SSD_LED
             {
                 tickCount = 100;
             }
+            
         }
         #endregion
 
@@ -399,7 +460,7 @@ namespace SSD_LED
 
 
 
-        private void RefreshDriveList()
+        private bool RefreshDriveList()
         {
             comboBox1.Items.Clear();
             /*
@@ -422,7 +483,24 @@ namespace SSD_LED
             }
              */
             PerformanceCounterCategory pfcCat = new PerformanceCounterCategory("PhysicalDisk");
-            comboBox1.Items.AddRange(pfcCat.GetInstanceNames());
+            string[] instanceNames;
+            try
+            {
+                instanceNames = pfcCat.GetInstanceNames();
+            }
+            catch
+            {
+                return false;
+            }
+            comboBox1.Items.AddRange(instanceNames);
+            Log.Information("Found the following Physical Disks: {DriveInstances}", instanceNames);
+            if(instanceNames.Length<1)
+            {
+                MessageBox.Show("Error during initialization: No physical disks found!");
+                Log.Error("Error during initialization: No physical disks found!");
+                return false;
+            }
+            return true;
         }
 
         private void SetStartup(bool create)
@@ -441,7 +519,24 @@ namespace SSD_LED
         private void timer1_Tick(object sender, EventArgs e)
         {
             //SSDActivityWMI();
-            SSDActivityPerfCount();
+            if (SSDActivityPerfCount())
+            {
+                tickErrorCount = 0;
+            }
+            else
+            {
+                tickErrorCount++;
+            }
+
+            if(tickErrorCount>=tickErrorCountMax)
+            {
+                timer1.Enabled = false;
+
+                MessageBox.Show("Something went wrong... exiting...");
+                Log.Information("Too many errors in sequence -> Exiting...");
+                Log.CloseAndFlush();
+                Application.Exit();
+            }
 
             //check health() via MSFT_StorageReliabilityCounter class
         }
@@ -509,6 +604,9 @@ namespace SSD_LED
              */
             //Close();
             removeTrayIcon();
+
+            Log.Information("Exiting...");
+            Log.CloseAndFlush();
             Application.Exit();
         }
 
