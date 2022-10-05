@@ -9,6 +9,7 @@ using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 using Serilog;
+using System.Configuration;
 
 namespace SSD_LED
 {
@@ -68,9 +69,19 @@ namespace SSD_LED
         {
             InitializeComponent();
 
+            //var test = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            //var logFilePath = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "log.txt");
+
+            //var appConfigPath = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+
+            var userConfigPath = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal);
+            var logFilePath = Path.Combine(Path.GetDirectoryName(userConfigPath.FilePath), "SSDLED.log");
+
+
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
-                .WriteTo.File("logs/ssd_led.log", rollingInterval: RollingInterval.Day, fileSizeLimitBytes: 1024*100)
+                .WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day, fileSizeLimitBytes: 1024*100)
                 .CreateLogger();
 
             Log.Information("Starting "+ NameAndVersion());
@@ -104,7 +115,8 @@ namespace SSD_LED
 
             label1.Text = NameAndVersion() + "  by SIRprise";
 
-            loadSettings();
+            if(loadSettings() == false)
+                Log.Error("Error while parsing settings");
 
             maxSpeedKBS = trackBar1.Value;
             textBox1.Text = maxSpeedKBS + " KB/s";
@@ -687,13 +699,28 @@ namespace SSD_LED
             {
                 comboBox1.Enabled = false;
                 diskSelectionPFCStr = null;
+                Log.Information("Changed single drive monitoring - checked status: " + checkBox1.Checked);
             }
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            diskSelectionPFCStr = GetInstanceNameByDriveIndex(comboBox1.SelectedIndex);
-            Debug.WriteLine("Selected: " + diskSelectionPFCStr);
+            string backupSelectionStr = diskSelectionPFCStr;
+            try
+            {
+                diskSelectionPFCStr = GetInstanceNameByDriveIndex(comboBox1.SelectedIndex);
+                Debug.WriteLine("Selected: " + diskSelectionPFCStr);
+                Log.Information("Selected single drive: " + comboBox1.Text + " which is index " + comboBox1.SelectedIndex + " of the drive list");
+            }
+            catch
+            {
+                Log.Error("Changed drive selection didn't work!");
+                //unselect
+                comboBox1.SelectedIndex = -1;
+                diskSelectionPFCStr = backupSelectionStr;
+                checkBox1.Checked = false;
+                MessageBox.Show("Error while selection - aborting...");
+            }
         }
 
         #endregion
@@ -701,19 +728,62 @@ namespace SSD_LED
         #region settings load and save
         private bool loadSettings()
         {
+            Log.Information("Loading settings:");
+            Log.Information("-----------------");
+
             int tempInt;
             bool tempBool;
             try
             {
                 int.TryParse(Properties.Settings.Default["MaxSpeed"].ToString(), out maxSpeedKBS);
                 trackBar1.Value = maxSpeedKBS;
+                Log.Information("max KBS: " + maxSpeedKBS);
                 int.TryParse(Properties.Settings.Default["RefreshIntervall"].ToString(), out tempInt);
                 timer1.Interval = tempInt;
                 trackBar2.Value = tempInt;
+                Log.Information("RefreshInterval: " + tempInt);
                 bool.TryParse(Properties.Settings.Default["DriveSelectedChecked"].ToString(), out tempBool);
+                Log.Information("SingleDrive monitoring: " + tempBool);
                 if (tempBool)
                 {
                     diskSelectionPFCStr = Properties.Settings.Default["DriveSelected"].ToString();
+                    try
+                    {
+                        PerformanceCounterCategory tempPfcCat = new PerformanceCounterCategory("PhysicalDisk");
+                        string[] instNames;
+                        try
+                        {
+                            instNames = tempPfcCat.GetInstanceNames();
+
+                            //plausi check if string is possible and drive available
+                            bool markerFound = false;
+                            foreach(string drv in instNames)
+                            {
+                                if (drv.Equals(diskSelectionPFCStr))
+                                {
+                                    markerFound = true;
+                                    Log.Information("Successfully parsed single drive monitoring instance " + diskSelectionPFCStr);
+                                }
+                            }
+                            if (markerFound == false)
+                            {
+                                Log.Error("Error finding monitored drive!");
+                                throw new Exception();
+                            }
+                        }
+                        catch
+                        {
+                            Log.Error("Error while getting physical disk list for plausi check!");
+                            diskSelectionPFCStr = null;
+                            tempBool = false;
+                        }
+                    }
+                    catch
+                    {
+                        Log.Error("Error while getting physical disk category");
+                        diskSelectionPFCStr = null;
+                        tempBool = false;
+                    }
                 }
                 else
                 {
@@ -725,19 +795,24 @@ namespace SSD_LED
                 iconDefault = CreateIcon(defaultColor);
                 tbColorDefault.BackColor = defaultColor;
                 tbColorDefault.Text = defaultColor.ToString();
+                Log.Information("ColorDefault: " + defaultColor.ToString());
 
                 readColor = ColorTranslator.FromHtml(Properties.Settings.Default["ColorRead"].ToString());
                 tbColorRead.BackColor = readColor;
                 tbColorRead.Text = readColor.ToString();
+                Log.Information("ColorRead: " + readColor.ToString());
 
                 writeColor = ColorTranslator.FromHtml(Properties.Settings.Default["ColorWrite"].ToString());
                 tbColorWrite.BackColor = writeColor;
                 tbColorWrite.Text = writeColor.ToString();
+                Log.Information("ColorWrite: " + writeColor.ToString());
 
+                Log.Information("-----------------");
                 return true;
             }
-            catch (Exception)
+            catch
             {
+                Log.Information("-----------------");
                 return false;
             }
         }
