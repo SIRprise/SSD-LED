@@ -265,8 +265,8 @@ namespace SSD_LED
 
         public bool SSDActivityPerfCount()
         {
-            float bytesPSRead;
-            float bytesPSWrite;
+            float bytesPSRead=0f;
+            float bytesPSWrite=0f;
 
             if (!checkBox1.Checked || (diskSelectionPFCStr == null))
             {
@@ -277,7 +277,7 @@ namespace SSD_LED
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("PhysicalDisk->_Total could not captured - Exception here: {exc}", ex);
+                    Log.Error("PhysicalDisk->_Total could not be captured - Exception here: {exc}", ex);
                     return false;
                 }
             }
@@ -293,6 +293,19 @@ namespace SSD_LED
                     Log.Error("PhysicalDisk->{selectionString} could not captured - Exception here: {exc}", diskSelectionPFCStr ,ex);
                     return false;
                 }
+            }
+
+            //this cases should never happen (but happened probably caused by uninitialized floats bytesPSRead/Write - fixed now)
+            if (bytesPSRead<0)
+            {
+                Log.Error("PhysicalDisk _diskReadCounter was negative:{numb}", bytesPSRead);
+                return false;
+            }
+
+            if (bytesPSWrite < 0)
+            {
+                Log.Error("PhysicalDisk _diskWriteCounter was negative:{numb}", bytesPSWrite);
+                return false;
             }
 
             //notifyIcon.Text = Math.Round(bytesPSRead / 1024, 2).ToString() + " KB/s read / " + Math.Round(bytesPSWrite / 1024, 2).ToString() + " KB/s write";
@@ -342,6 +355,18 @@ namespace SSD_LED
                 }
                 scaledKBSRead = scaledKBSRead > 255 ? 255 : scaledKBSRead;
                 scaledKBSWrite = scaledKBSWrite > 255 ? 255 : scaledKBSWrite;
+
+                if(scaledKBSRead < 0)
+                {
+                    scaledKBSRead = 0;
+                    Log.Error("scaledKBSRead < 0 --> {numb}",scaledKBSRead);
+                }
+
+                if(scaledKBSWrite < 0)
+                {
+                    scaledKBSWrite = 0;
+                    Log.Error("scaledKBSWrite < 0 --> {numb}", scaledKBSWrite);
+                }
 
 
                 int R = (int)(((readColor.R / 255f) * scaledKBSRead + (writeColor.R / 255f) * scaledKBSWrite));// / 2);
